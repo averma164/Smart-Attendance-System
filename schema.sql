@@ -15,7 +15,8 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS students (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    roll_no VARCHAR(20) NOT NULL UNIQUE
+    roll_no VARCHAR(20) NOT NULL UNIQUE,
+    password VARCHAR(100) NOT NULL
 );
 
 -- Attendance table
@@ -32,7 +33,7 @@ CREATE TABLE IF NOT EXISTS attendance (
 INSERT IGNORE INTO users (username, password) VALUES ('admin', 'admin123');
 
 -- Sample student data
-INSERT IGNORE INTO students (name, roll_no) VALUES
-    ('Alice Johnson', 'CS001'),
-    ('Bob Smith', 'CS002'),
-    ('Carol Davis', 'CS003');
+INSERT IGNORE INTO students (name, roll_no, password) VALUES
+    ('Alice Johnson', 'CS001', 'AliceJohnson123'),
+    ('Bob Smith', 'CS002', 'BobSmith123'),
+    ('Carol Davis', 'CS003', 'CarolDavis123');

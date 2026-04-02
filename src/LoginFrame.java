@@ -12,6 +12,7 @@ public class LoginFrame extends JFrame {
 
     private JTextField txtUsername;
     private JPasswordField txtPassword;
+    private JComboBox<String> roleCombo;
     private JButton btnLogin;
     private JButton btnClear;
     private JButton btnSignUp;
@@ -33,7 +34,7 @@ public class LoginFrame extends JFrame {
     public LoginFrame() {
         setTitle("Smart Attendance System — Login");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(440, 580);
+        setSize(440, 640);
         setLocationRelativeTo(null);
         setResizable(false);
         buildUI();
@@ -61,7 +62,7 @@ public class LoginFrame extends JFrame {
             new EmptyBorder(40, 45, 40, 45)
         ));
         card.setOpaque(true);
-        card.setPreferredSize(new Dimension(360, 430));
+        card.setPreferredSize(new Dimension(360, 520));
 
         // Icon placeholder (emoji as label)
         JLabel iconLabel = new JLabel("🎓", SwingConstants.CENTER);
@@ -79,8 +80,21 @@ public class LoginFrame extends JFrame {
         subtitleLabel.setForeground(TEXT_MUTED);
         subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+        // Role selector
+        JLabel lblRole = new JLabel("Login As");
+        lblRole.setFont(FONT_LABEL);
+        lblRole.setForeground(TEXT_MUTED);
+        lblRole.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        roleCombo = new JComboBox<>(new String[]{"Admin", "Student"});
+        roleCombo.setFont(FONT_FIELD);
+        roleCombo.setForeground(TEXT_PRIMARY);
+        roleCombo.setBackground(FIELD_BG);
+        roleCombo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        roleCombo.setAlignmentX(Component.LEFT_ALIGNMENT);
+
         // Username field
-        JLabel lblUser = new JLabel("Username");
+        JLabel lblUser = new JLabel("Username / Roll No");
         lblUser.setFont(FONT_LABEL);
         lblUser.setForeground(TEXT_MUTED);
         lblUser.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -112,6 +126,10 @@ public class LoginFrame extends JFrame {
         card.add(Box.createVerticalStrut(4));
         card.add(subtitleLabel);
         card.add(Box.createVerticalStrut(28));
+        card.add(lblRole);
+        card.add(Box.createVerticalStrut(6));
+        card.add(roleCombo);
+        card.add(Box.createVerticalStrut(16));
         card.add(lblUser);
         card.add(Box.createVerticalStrut(6));
         card.add(txtUsername);
@@ -187,23 +205,47 @@ public class LoginFrame extends JFrame {
                 showError("Cannot connect to database.\nCheck DBConnection.java and MySQL server.");
                 return;
             }
-            PreparedStatement stmt = conn.prepareStatement(
-                "SELECT id FROM users WHERE username = ? AND password = ?"
-            );
-            stmt.setString(1, username);
-            stmt.setString(2, password);
-            ResultSet rs = stmt.executeQuery();
-
-            if (rs.next()) {
-                dispose();
-                SwingUtilities.invokeLater(() -> new MainFrame(username).setVisible(true));
+            String role = (String) roleCombo.getSelectedItem();
+            PreparedStatement stmt;
+            
+            if ("Admin".equals(role)) {
+                stmt = conn.prepareStatement(
+                    "SELECT id FROM users WHERE username = ? AND password = ?"
+                );
+                stmt.setString(1, username);
+                stmt.setString(2, password);
+                ResultSet rs = stmt.executeQuery();
+                if (rs.next()) {
+                    dispose();
+                    SwingUtilities.invokeLater(() -> new MainFrame(username).setVisible(true));
+                } else {
+                    showError("Invalid admin credentials.");
+                    txtPassword.setText("");
+                    txtPassword.requestFocus();
+                }
+                rs.close();
+                stmt.close();
             } else {
-                showError("Invalid username or password.");
-                txtPassword.setText("");
-                txtPassword.requestFocus();
+                stmt = conn.prepareStatement(
+                    "SELECT id, name, roll_no FROM students WHERE roll_no = ? AND password = ?"
+                );
+                stmt.setString(1, username);
+                stmt.setString(2, password);
+                ResultSet rs = stmt.executeQuery();
+                if (rs.next()) {
+                    int studentId = rs.getInt("id");
+                    String studentName = rs.getString("name");
+                    String rollNo = rs.getString("roll_no");
+                    dispose();
+                    SwingUtilities.invokeLater(() -> new StudentMainFrame(studentId, studentName, rollNo).setVisible(true));
+                } else {
+                    showError("Invalid student credentials.");
+                    txtPassword.setText("");
+                    txtPassword.requestFocus();
+                }
+                rs.close();
+                stmt.close();
             }
-            rs.close();
-            stmt.close();
         } catch (SQLException ex) {
             showError("Database error:\n" + ex.getMessage());
             ex.printStackTrace();

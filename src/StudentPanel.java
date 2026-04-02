@@ -128,15 +128,17 @@ public class StudentPanel extends JPanel {
                 return;
             }
             try {
+                String password = name.replace(" ", "") + "123";
                 Connection conn = DBConnection.getConnection();
                 PreparedStatement ps = conn.prepareStatement(
-                    "INSERT INTO students (name, roll_no) VALUES (?, ?)");
+                    "INSERT INTO students (name, roll_no, password) VALUES (?, ?, ?)");
                 ps.setString(1, name);
                 ps.setString(2, roll);
+                ps.setString(3, password);
                 ps.executeUpdate();
                 ps.close();
                 statusLbl.setForeground(SUCCESS);
-                statusLbl.setText("✓ Student added successfully!");
+                statusLbl.setText("✓ Student added successfully! (Password: " + password + ")");
                 txtName.setText(""); txtRoll.setText("");
                 loadStudents();
             } catch (SQLIntegrityConstraintViolationException ex) {
