@@ -1,4 +1,4 @@
-# Smart Attendance Management syste
+# Smart Attendance Management system
 
 A desktop application built with **Java Swing** and **MySQL** to manage student attendance digitally.
 
